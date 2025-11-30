@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Livmart E-Commerce (Local Host)</title>
+  <style>
+     :root {
+      --primary-color: #007bff; 
+      --secondary-color: #ffc107; 
+      --background-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-color: #343a40;
+    }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; background-color: var(--background-color); color: var(--text-color); }
+    .top-panel { display: flex; justify-content: space-between; align-items: center; padding: 10px 30px; background-color: var(--primary-color); color: white; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+    .logo { font-size: 28px; font-weight: 900; cursor: pointer; }
+    .search-bar { flex-grow: 1; margin: 0 40px; max-width: 500px; }
+    .search-bar input { width: 100%; padding: 10px 15px; border: none; border-radius: 20px; font-size: 16px; }
+    .login-controls { display: flex; gap: 15px; align-items: center; }
+    .login-controls button { background: var(--secondary-color); color: var(--text-color); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: 600; }
+    .cart-icon { color: white; font-size: 24px; cursor: pointer; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .section-header { margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; text-align: center; }
+    .category-item { padding: 15px; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer; }
+    .advertisement-panel { background-color: #e9ecef; padding: 0; border-radius: 8px; overflow: hidden; margin-bottom: 30px; }
+    #slideshow-container { height: 350px; background: url('https://picsum.photos/1200/350?random=1') no-repeat center center/cover; display: flex; justify-content: center; align-items: center; font-size: 30px; font-weight: bold; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); transition: background-image 0.5s ease-in-out; }
+    #sale-products-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
+    .product-card { flex: 0 0 220px; background-color: var(--card-bg); border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.1); padding: 15px; text-align: center; }
+    .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-bottom: 10px; }
+    .product-card s { color: #888; font-size: 0.9em; }
+    .product-card b { color: #dc3545; } 
+    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); padding-top: 50px; }
+    .modal-content { background-color: #fefefe; margin: 0 auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .modal-content h2 { text-align: center; margin-bottom: 20px; }
+    .close-btn { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; }
+    .login-form input, .login-form button { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; border-radius: 5px; font-size: 16px; }
+    .login-form button { background: var(--primary-color); color: white; border: none; cursor: pointer; }
+    #auth-message, #register-message, #master-message { margin: 15px 0; padding: 10px; border-radius: 5px; display: none; font-weight: bold; }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    #master-modal .modal-content { max-width: 800px; }
+    #master-modal button { padding: 10px; background: #343a40; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .delete-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+    .delete-item button { background-color: #dc3545; font-size: 12px; padding: 5px 10px; }
+  </style>
+</head>
+<body>
+
+<div class="top-panel">
+    <div class="logo" onclick="location.reload()">LIVMART</div>
+    <div class="search-bar">
+        <input type="text" id="product-search" placeholder="Search for products..." onkeyup="filterProducts()">
+    </div>
+    <div class="login-controls">
+        <button id="user-login-btn" onclick="openLoginModal('user')">User Login</button>
+        <button id="master-login-btn" onclick="openLoginModal('master')">Master Login</button>
+        <span class="cart-icon">🛒</span>
+    </div>
+</div>
+
+<div class="container">
+    <div class="advertisement-panel">
+        <div id="slideshow-container">Ad Content Changes Here</div>
+    </div>
+
+    <h2 class="section-header">Shop by Category</h2>
+    <div class="category-grid">
+        <div class="category-item" data-category="Mobiles & Tabs">📱 Mobiles & Tabs</div>
+        <div class="category-item" data-category="Fashion Wears">👕 Fashion Wears</div>
+        <div class="category-item" data-category="Laptops & TV's">💻 Laptops & TV's</div>
+        <div class="category-item" data-category="Electronics">🎧 Electronics</div>
+        <div class="category-item" data-category="Electricals">🔌 Electricals</div>
+        <div class="category-item" data-category="Toys">🧸 Toys</div>
+        <div class="category-item" data-category="Cosmetics">💄 Cosmetics</div>
+        <div class="category-item" data-category="Groceries">🥦 Groceries</div>
+    </div>
+    
+    <div class="sale-panel">
+        <h2 class="section-header">🔥 Sale of the Day</h2>
+        <div id="sale-products-container"></div>
+    </div>
+    
+    <div id="search-results-panel" style="margin-top: 30px; display: none;">
+        <h2 class="section-header">Search Results</h2>
+        <div id="all-products-container" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
+    </div>
+</div>
+
+<div id="login-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+    <h2 id="login-header">Login to Existing Account</h2>
+    <div id="auth-message"></div>
+    <div class="login-form">
+        <input type="email" id="email" placeholder="Mail ID" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="handleLogin()">Login</button>
+        <div id="register-option" style="margin-top: 15px; text-align: center;">
+            <a href="#" onclick="openRegisterModal(event)">Register new user</a>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div id="register-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeRegisterModal()">&times;</span>
+        <h2>Register New User</h2>
+        <div id="register-message"></div>
+        <div class="login-form">
+            <input type="email" id="reg-email" placeholder="Mail ID" required>
+            <input type="password" id="reg-password" placeholder="Password" required>
+            <button onclick="handleRegistration()">Register</button>
+        </div>
+        <p style="margin-top: 10px; text-align: center;">Already have an account? <a href="#" onclick="openLoginModal('user', event)">Login here</a></p>
+    </div>
+</div>
+
+<div id="master-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeMasterModal()">&times;</span>
+        <h2 id="master-panel-header">Master Control Panel</h2>
+        <div id="master-message"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <button onclick="showProductAddForm('PRODUCTS')">Add Products in Library</button>
+            <button onclick="showProductRemovePage('PRODUCTS')">Remove Products in Library</button>
+            <button onclick="showProductAddForm('SALE_OF_DAY')">Add products in Sale of the Day Panel</button>
+            <button onclick="showProductRemovePage('SALE_OF_DAY')">Remove products in Sale of the Day Panel</button>
+        </div>
+        <div id="add-product-form" style="border-top: 1px solid #ccc; padding-top: 15px; display: none;">
+            <h3>Add New Product</h3>
+            <input type="hidden" id="add-target-sheet">
+            <input type="text" id="add-name" placeholder="Product Name" required>
+            <input type="text" id="add-category" placeholder="Category (Required for Library, Optional for Sale)" value="">
+            <input type="number" id="add-price" placeholder="Price" required min="0">
+            <input type="number" id="add-offer" placeholder="Offer Percent (0-100)" value="0" min="0" max="100">
+            <input type="url" id="add-img-url" placeholder="Image URL (Main img src link)" required>
+            <button id="add-img-btn" onclick="toggleOtherImg()" style="margin: 10px 0; background: #6c757d;">Add Another Image</button>
+            <input type="url" id="add-other-img-url" placeholder="Other Image URL (Optional)" style="display:none; margin-top: 5px;">
+            <button onclick="submitNewProduct()">Submit Product</button>
+        </div>
+        <div id="remove-product-page" style="border-top: 1px solid #ccc; padding-top: 15px; display: none;">
+            <h3>Remove Products</h3>
+            <input type="text" id="remove-search" placeholder="Search product by name or ID..." onkeyup="filterRemoveList()">
+            <div id="product-list-container" style="max-height: 400px; overflow-y: auto;"></div>
+            <input type="hidden" id="remove-target-sheet">
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ CRITICAL: REPLACE THIS PLACEHOLDER with the Web App URL you got from deploying Code.gs.
+    const GS_API_URL = 'https://script.google.com/macros/s/AKfycbxy0mdzO9i29OXoqNXDPsDKH0PuvwzhE3Q6zEk_Z99QE4BATAF6YwDIoIFjI0QdQZ18/exec';
+    
+    // --- Core API Wrapper ---
+    async function callAppsScript(action, data = {}) {
+        if (GS_API_URL === 'YOUR_NEW_DEPLOYED_WEB_APP_URL_HERE') {
+             console.error("CRITICAL ERROR: Please update GS_API_URL in your HTML file with your actual deployed Apps Script URL.");
+             alert("CRITICAL ERROR: Please update GS_API_URL in your HTML file!");
+             return { success: false, message: "URL not set up correctly." };
+        }
+        
+        try {
+            const response = await fetch(GS_API_URL, {
+                method: 'POST',
+                // Crucial: Set content type to match what Apps Script doPost expects
+                headers: { 'Content-Type': 'text/plain' }, 
+                // Send action and data as a JSON string
+                body: JSON.stringify({ action, ...data })
+                // Removed 'mode: no-cors' for reliability.
+            });
+            
+            // Apps Script returns ContentService.createTextOutput, so we read text then parse JSON
+            const text = await response.text();
+            return JSON.parse(text);
+
+        } catch (error) {
+            console.error('API Call Failed:', error);
+            // This error usually means a network issue, invalid URL, or a CORS problem.
+            return { success: false, message: 'Network Error: Could not connect to Apps Script API. Check your URL and browser console.' };
+        }
+    }
+
+    // --- Global State & Initial Load ---
+    let allProductsData = [];
+    let productsToRemove = [];
+    let currentMasterTarget = '';
+
+    document.addEventListener('DOMContentLoaded', loadInitialData);
+
+    async function loadInitialData() {
+        const saleResult = await callAppsScript('getSaleOfTheDayProducts');
+        if (saleResult.success !== false) {
+            displaySaleOfTheDay(saleResult.data || []);
+        } else {
+            console.error('Failed to load Sale data:', saleResult.message);
+        }
+
+        const productsResult = await callAppsScript('getProducts');
+        if (productsResult.success !== false) {
+            handleAllProducts(productsResult.data || []);
+        } else {
+            console.error('Failed to load Products data:', productsResult.message);
+        }
+    }
+
+    // --- Handlers ---
+
+    async function handleLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        if (!email || !password) {
+            displayMessage('auth-message', 'Please enter both email and password.', false);
+            return;
+        }
+
+        const loginAction = currentLoginType === 'user' ? 'userLogin' : 'masterLogin';
+        const result = await callAppsScript(loginAction, { email, password });
+
+        displayMessage('auth-message', result.message, result.success);
+
+        if (result.success) {
+            setTimeout(() => {
+                closeLoginModal();
+                if (currentLoginType === 'master') {
+                    document.getElementById('master-modal').style.display = 'block';
+                }
+            }, 1000);
+        }
+    }
+
+    async function handleRegistration() {
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        
+        if (!email || !password) {
+            displayMessage('register-message', 'Please enter both email and password.', false);
+            return;
+        }
+        
+        const result = await callAppsScript('registerUser', { email, password });
+        displayMessage('register-message', result.message, result.success);
+        
+        if (result.success) {
+            setTimeout(() => {
+                alert(result.message + "\n\nPress OK to refresh the page and login.");
+                window.location.reload(); 
+            }, 1500);
+        }
+    }
+
+    async function submitNewProduct() {
+        const target = document.getElementById('add-target-sheet').value;
+        const productData = {
+            name: document.getElementById('add-name').value,
+            category: document.getElementById('add-category').value,
+            price: document.getElementById('add-price').value,
+            offerPercent: document.getElementById('add-offer').value,
+            imageUrl: document.getElementById('add-img-url').value,
+            otherImageUrl: document.getElementById('add-other-img-url').value
+        };
+
+        if (!productData.name || !productData.price || !productData.imageUrl) {
+            displayMessage('master-message', 'Please fill in Name, Price, and Main Image URL.', false);
+            return;
+        }
+
+        if (target === 'PRODUCTS' && !productData.category) {
+            displayMessage('master-message', 'Category is required when adding to the Product Library.', false);
+            return;
+        }
+        
+        const result = await callAppsScript('addProduct', { productData, targetSheet: target });
+        
+        displayMessage('master-message', result.message, result.success);
+        if (result.success) {
+            // Reload data for immediate display update
+            loadInitialData(); 
+        }
+    }
+
+    async function showProductRemovePage(target) {
+        currentMasterTarget = target;
+        document.getElementById('add-product-form').style.display = 'none';
+        document.getElementById('remove-product-page').style.display = 'block';
+        document.getElementById('remove-target-sheet').value = target;
+        document.getElementById('master-message').style.display = 'none';
+        document.getElementById('master-panel-header').textContent = `Remove Products from ${target.replace('_', ' ')}`;
+
+        const fetchAction = target === 'PRODUCTS' ? 'getProducts' : 'getSaleOfTheDayProducts';
+        const result = await callAppsScript(fetchAction);
+
+        if (result.success !== false) {
+             renderRemoveList(result.data || []);
+        } else {
+            displayMessage('master-message', result.message, false);
+        }
+    }
+
+    async function handleRemoveSuccess(result) {
+        displayMessage('master-message', result.message, result.success);
+        if (result.success) {
+            // Re-fetch and re-render the list after deletion
+            showProductRemovePage(currentMasterTarget);
+            loadInitialData();
+        }
+    }
+
+    async function confirmRemoveProduct(rowIndex, productName) {
+        if (confirm(`Are you sure you want to permanently remove "${productName}"?`)) {
+            const target = document.getElementById('remove-target-sheet').value;
+            const result = await callAppsScript('removeProduct', { rowIndex, targetSheet: target });
+            handleRemoveSuccess(result);
+        }
+    }
+
+    // --- Helper Functions (UI Logic) ---
+    
+    function handleAllProducts(products) { allProductsData = products; displayProducts(products, 'all-products-container', true); document.getElementById('search-results-panel').style.display = 'none'; }
+    
+    function displayProducts(products, containerId, hideInfo = false) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = ''; 
+        if (products.length === 0) { container.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">No products found in this section.</p>'; return; }
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            const offerDisplay = product.OfferPercent > 0 ? 
+                                    `<p>Original: <s>$${product.Price.toFixed(2)}</s></p>
+                                     <p>Offer: <b>${product.OfferPercent}% OFF</b></p>
+                                     <p>Final Price: <b>$${product.FinalPrice ? product.FinalPrice.toFixed(2) : (product.Price * (1 - product.OfferPercent/100)).toFixed(2)}</b></p>` 
+                                    : `<p>Price: <b>$${product.Price.toFixed(2)}</b></p>`;
+            productCard.innerHTML = `
+                <img src="${product.ImageURL}" alt="${product.Name}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'" >
+                <h4>${product.Name}</h4>
+                ${hideInfo ? '' : offerDisplay}
+                ${product.Category ? `<p style="font-size: 0.9em; color: #6c757d;">${product.Category}</p>` : ''}
+            `;
+            container.appendChild(productCard);
+        });
+    }
+    
+    function displaySaleOfTheDay(products) { displayProducts(products, 'sale-products-container'); }
+
+    function filterProducts() {
+        const searchTerm = document.getElementById('product-search').value.toLowerCase();
+        const resultsPanel = document.getElementById('search-results-panel');
+        
+        if (searchTerm.length < 2) {
+            resultsPanel.style.display = 'none';
+            return;
+        }
+
+        const filtered = allProductsData.filter(product => 
+            product.Name.toLowerCase().includes(searchTerm) || 
+            (product.Category && product.Category.toLowerCase().includes(searchTerm))
+        );
+        
+        resultsPanel.style.display = 'block';
+        displayProducts(filtered, 'all-products-container', true); 
+    }
+
+    let currentLoginType = 'user'; 
+    function openLoginModal(type, event) {
+        if (event) event.preventDefault();
+        currentLoginType = type;
+        document.getElementById('login-modal').style.display = 'block';
+        document.getElementById('register-modal').style.display = 'none'; 
+        const header = document.getElementById('login-header');
+        const registerOption = document.getElementById('register-option');
+        header.textContent = type === 'user' ? 'Login to Existing Account' : 'Master Login';
+        registerOption.style.display = type === 'user' ? 'block' : 'none';
+        document.getElementById('auth-message').style.display = 'none';
+    }
+
+    function closeLoginModal() {
+        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+    }
+    
+    function openRegisterModal(event) {
+        if (event) event.preventDefault();
+        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('register-modal').style.display = 'block';
+        document.getElementById('register-message').style.display = 'none';
+    }
+
+    function closeRegisterModal() { document.getElementById('register-modal').style.display = 'none'; }
+
+    function closeMasterModal() {
+        document.getElementById('master-modal').style.display = 'none';
+        document.getElementById('add-product-form').style.display = 'none';
+        document.getElementById('remove-product-page').style.display = 'none';
+        document.getElementById('master-message').style.display = 'none';
+    }
+
+    function displayMessage(elementId, message, isSuccess) {
+        const msgDiv = document.getElementById(elementId);
+        msgDiv.textContent = message;
+        msgDiv.className = isSuccess ? 'success' : 'error';
+        msgDiv.style.display = 'block';
+    }
+
+    function showProductAddForm(target) {
+        currentMasterTarget = target;
+        document.getElementById('remove-product-page').style.display = 'none';
+        document.getElementById('add-product-form').style.display = 'block';
+        document.getElementById('add-target-sheet').value = target; 
+        document.getElementById('master-message').style.display = 'none';
+        document.getElementById('master-panel-header').textContent = `Add Product to ${target.replace('_', ' ')}`;
+    }
+
+    function toggleOtherImg() {
+        const input = document.getElementById('add-other-img-url');
+        const button = document.getElementById('add-img-btn');
+        if (input.style.display === 'none') {
+            input.style.display = 'block';
+            button.textContent = 'Hide Other Image Field';
+        } else {
+            input.style.display = 'none';
+            input.value = '';
+            button.textContent = 'Add Another Image';
+        }
+    }
+    
+    function renderRemoveList(products) {
+        productsToRemove = products; 
+        filterRemoveList(); 
+    }
+    
+    function filterRemoveList() {
+        const searchTerm = document.getElementById('remove-search').value.toLowerCase();
+        const container = document.getElementById('product-list-container');
+        container.innerHTML = '';
+        
+        const filtered = productsToRemove.filter(product => 
+            product.Name.toLowerCase().includes(searchTerm) || 
+            String(product.ID).includes(searchTerm)
+        );
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<p style="text-align: center; margin-top: 15px;">No products found matching your search.</p>';
+            return;
+        }
+
+        filtered.forEach(product => {
+            const item = document.createElement('div');
+            item.className = 'delete-item';
+            item.innerHTML = `
+                <span><b>ID: ${product.ID}</b> - ${product.Name} ($${product.Price})</span>
+                <button onclick="confirmRemoveProduct(${product.rowIndex}, '${product.Name}')">Delete</button>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    let adIndex = 0;
+    const ads = [
+        { text: "FLASH SALE: Up to 50% OFF on Electronics!", img: 'url("https://picsum.photos/1200/350?random=1")' },
+        { text: "New Arrivals in Fashion! Shop Now.", img: 'url("https://picsum.photos/1200/350?random=2")' },
+        { text: "Get 15% Cashback on Groceries this week.", img: 'url("https://picsum.photos/1200/350?random=3")' },
+        { text: "Limited Stock! Best deals on Laptops.", img: 'url("https://picsum.photos/1200/350?random=4")' },
+        { text: "Free Shipping on all orders above $100!", img: 'url("https://picsum.photos/1200/350?random=5")' }
+    ];
+    
+    function changeAd() {
+        const container = document.getElementById('slideshow-container');
+        adIndex = (adIndex + 1) % ads.length;
+        container.textContent = ads[adIndex].text;
+        container.style.backgroundImage = ads[adIndex].img;
+    }
+    
+    setInterval(changeAd, 3000);
+</script>
+
+</body>
+</html>
